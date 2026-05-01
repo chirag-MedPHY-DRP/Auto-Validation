@@ -17,7 +17,7 @@ body {
 }
 
 .container { 
-    max-width: 1050px; /* Slightly wider to accommodate the new ID Name column */
+    max-width: 1100px; /* Widened slightly to easily fit the new ID Name column */
     margin: 0 auto; 
 }
 
@@ -113,7 +113,7 @@ button.secondary:hover {
 .mapping-row {
     display: flex; 
     justify-content: space-between; 
-    align-items: flex-start; /* Aligns items to top for the multi-line input layout */
+    align-items: flex-start; /* Aligns to top so the button stays near the names */
     padding: 15px; 
     border-bottom: 1px solid var(--border); 
     background-color: #fcfcfc;
@@ -155,7 +155,7 @@ th, td {
 
 th { 
     background-color: #f8f9fa; 
-    white-space: nowrap; /* Prevents headers from wrapping awkwardly */
+    white-space: nowrap; /* Prevents column headers from stacking weirdly */
 }
 
 .actions { 
@@ -193,6 +193,8 @@ th {
     font-size: 18px; 
     font-weight: bold; 
     color: var(--primary); 
+    text-align: center;
+    padding: 0 20px;
 }
 
 @keyframes spin { 
