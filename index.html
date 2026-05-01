@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI vs. Doctor Contouring Comparison Tool</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- SheetJS for Excel Export (Replaces pandas) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- String Similarity for Fuzzy Matching (Replaces difflib) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/string-similarity/4.0.4/string-similarity.min.js"></script>
+    <!-- dcmjs for DICOM parsing (Replaces pydicom) -->
+    <script src="https://unpkg.com/dcmjs"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI vs. Doctor Contouring Comparison Tool</h1>
+            <p>Select your DICOM files to begin mapping and analysis.</p>
+        </header>
+
+        <section id="upload-section" class="card">
+            <h2>1. Upload Patient Data</h2>
+            <div class="form-group">
+                <label>Patient ID / Name:</label>
+                <input type="text" id="patient-id" placeholder="e.g., PAT_001">
+            </div>
+            <div class="form-group">
+                <label>CT Images Folder (DICOM directory):</label>
+                <!-- webkitdirectory allows folder selection -->
+                <input type="file" id="ct-dir" webkitdirectory directory multiple>
+            </div>
+            <div class="form-group">
+                <label>DOCTOR RTStruct File:</label>
+                <input type="file" id="doc-rt" accept=".dcm">
+            </div>
+            <div class="form-group">
+                <label>AI RTStruct File:</label>
+                <input type="file" id="ai-rt" accept=".dcm">
+            </div>
+            <button id="btn-load" onclick="processFiles()">Load & Auto-Map Structures</button>
+        </section>
+
+        <section id="mapping-section" class="card hidden">
+            <h2>2. Structure Mapping</h2>
+            <div id="mapping-container"></div>
+            <button id="btn-calculate" onclick="runCalculations()">Run Calculations</button>
+        </section>
+
+        <section id="results-section" class="card hidden">
+            <h2>3. Results</h2>
+            <div class="table-responsive">
+                <table id="results-table">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doc ROI</th>
+                            <th>AI ROI</th>
+                            <th>DSC</th>
+                            <th>HD95</th>
+                            <th>HDmax</th>
+                            <th>V_Doc(cc)</th>
+                            <th>V_AI(cc)</th>
+                            <th>Var %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-body"></tbody>
+                </table>
+            </div>
+            <div class="actions">
+                <button onclick="exportToExcel()">Export to Excel</button>
+                <button class="secondary" onclick="organizeExcel()">Organize Existing Excel</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
