@@ -6,9 +6,8 @@
     <title>AI vs. Doctor Contouring Comparison Tool</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- External Libraries -->
+    <!-- External Libraries (SheetJS for Excel export, dcmjs for DICOM) -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/string-similarity/4.0.4/string-similarity.min.js"></script>
     <script src="https://unpkg.com/dcmjs"></script>
 </head>
 <body>
@@ -47,7 +46,28 @@
 
         <section id="mapping-section" class="card hidden">
             <h2>2. Structure Mapping</h2>
-            <div id="mapping-container"></div>
+            
+            <div class="mapping-block">
+                <h3>Currently Paired Structures</h3>
+                <div id="mapping-container">
+                    <!-- Paired items will appear here -->
+                </div>
+            </div>
+
+            <div class="mapping-block" id="manual-mapping-section">
+                <h3>Manual Pairing (Unmatched Structures)</h3>
+                <div class="manual-controls">
+                    <select id="unmapped-doc" class="select-box">
+                        <!-- Unmapped Doc structures -->
+                    </select>
+                    <span class="link-icon">&harr;</span>
+                    <select id="unmapped-ai" class="select-box">
+                        <!-- Unmapped AI structures -->
+                    </select>
+                    <button class="btn-sm" onclick="addManualMapping()">Add Pair</button>
+                </div>
+            </div>
+
             <button id="btn-calculate" onclick="runCalculations()">Run Calculations</button>
         </section>
 
