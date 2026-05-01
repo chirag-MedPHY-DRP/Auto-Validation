@@ -33,7 +33,7 @@ header {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .form-group {
@@ -104,6 +104,7 @@ th {
     padding: 10px;
     border-bottom: 1px solid var(--border);
 }
+
 /* --- Loading Spinner Styles --- */
 #loading-overlay {
     position: fixed;
@@ -111,21 +112,17 @@ th {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+    background-color: rgba(255, 255, 255, 0.85);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 9999; /* Ensures it stays on top of everything */
-}
-
-#loading-overlay.hidden {
-    display: none;
+    z-index: 9999;
 }
 
 .spinner {
-    border: 6px solid #f3f3f3; /* Light grey background */
-    border-top: 6px solid var(--primary); /* Blue spinning part */
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid var(--primary);
     border-radius: 50%;
     width: 60px;
     height: 60px;
