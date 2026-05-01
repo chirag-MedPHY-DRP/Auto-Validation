@@ -6,9 +6,11 @@
     <title>AI vs. Doctor Contouring Comparison Tool</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- External Libraries required by the JavaScript -->
+    <!-- External Libraries -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/dcmjs"></script>
+    <!-- REQUIRED FOR EXACT PYTHON SHAPELY DSC LOGIC: -->
+    <script src="https://unpkg.com/polygon-clipping"></script> 
 </head>
 <body>
     <!-- Full Screen Loading Overlay -->
@@ -51,26 +53,20 @@
             
             <div class="mapping-block">
                 <h3>Currently Paired Structures</h3>
-                <div id="mapping-container">
-                    <!-- Paired items and ID Name inputs will be injected here by app.js -->
-                </div>
+                <div id="mapping-container"></div>
             </div>
 
             <div class="mapping-block" id="manual-mapping-section" style="display: none;">
                 <h3>Manual Pairing (Unmatched Structures)</h3>
                 <div class="manual-controls">
-                    <select id="unmapped-doc" class="select-box">
-                        <!-- Unmapped Doc structures injected here -->
-                    </select>
+                    <select id="unmapped-doc" class="select-box"></select>
                     <span class="link-icon">&harr;</span>
-                    <select id="unmapped-ai" class="select-box">
-                        <!-- Unmapped AI structures injected here -->
-                    </select>
+                    <select id="unmapped-ai" class="select-box"></select>
                     <button class="btn-sm" onclick="addManualMapping()">Add Pair</button>
                 </div>
             </div>
 
-            <button id="btn-calculate" onclick="runCalculations()">Run Calculations</button>
+            <button id="btn-calculate" onclick="runCalculations()">Run Exact Calculations</button>
         </section>
 
         <!-- PHASE 3: Results -->
@@ -81,7 +77,7 @@
                     <thead>
                         <tr>
                             <th>Patient</th>
-                            <th>ID Name</th> <!-- NEW COLUMN FOR IDENTIFICATION NAME -->
+                            <th>ID Name</th>
                             <th>Doc ROI</th>
                             <th>AI ROI</th>
                             <th>DSC</th>
@@ -92,9 +88,7 @@
                             <th>Var %</th>
                         </tr>
                     </thead>
-                    <tbody id="results-body">
-                        <!-- Calculation rows injected here by app.js -->
-                    </tbody>
+                    <tbody id="results-body"></tbody>
                 </table>
             </div>
             <div class="actions">
