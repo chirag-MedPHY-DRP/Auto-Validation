@@ -64,16 +64,24 @@ function autoMapStructures(docNames, aiNames) {
         // 1. Exact Match
         if (availableAi.includes(docName)) {
             bestMatch = docName;
-        } else {
-            // 2. Fuzzy Match using string-similarity library
-            const matches = stringSimilarity.findBestMatch(docName, availableAi);
-            if (matches.bestMatch.rating >= 0.6) {
-                bestMatch = matches.bestMatch.target;
+        } 
+        // 2. Fuzzy Match
+        // CRITICAL FIX: Only run if availableAi actually has items left!
+        else if (availableAi.length > 0) {
+            // CRITICAL FIX: Check if the library loaded correctly from the internet
+            if (typeof stringSimilarity !== 'undefined') {
+                const matches = stringSimilarity.findBestMatch(docName, availableAi);
+                if (matches.bestMatch.rating >= 0.6) {
+                    bestMatch = matches.bestMatch.target;
+                }
+            } else {
+                console.warn("Fuzzy matching library didn't load. Relying on exact matches only.");
             }
         }
 
         if (bestMatch) {
             currentMapping[docName] = bestMatch;
+            // Remove the matched item so it can't be used twice
             availableAi = availableAi.filter(n => n !== bestMatch);
             
             // Build UI for Mapping
