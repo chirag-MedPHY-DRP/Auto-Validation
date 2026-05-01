@@ -6,7 +6,7 @@
     <title>AI vs. Doctor Contouring Comparison Tool</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- External Libraries required by app.js -->
+    <!-- External Libraries required by the JavaScript -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/dcmjs"></script>
 </head>
@@ -52,7 +52,7 @@
             <div class="mapping-block">
                 <h3>Currently Paired Structures</h3>
                 <div id="mapping-container">
-                    <!-- Paired items will be injected here by app.js -->
+                    <!-- Paired items and ID Name inputs will be injected here by app.js -->
                 </div>
             </div>
 
@@ -81,6 +81,7 @@
                     <thead>
                         <tr>
                             <th>Patient</th>
+                            <th>ID Name</th> <!-- NEW COLUMN FOR IDENTIFICATION NAME -->
                             <th>Doc ROI</th>
                             <th>AI ROI</th>
                             <th>DSC</th>
