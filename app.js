@@ -1,3 +1,90 @@
+// --- ADD THESE HELPER FUNCTIONS AT THE TOP ---
+function showLoading(message) {
+    document.getElementById('loading-text').innerText = message || "Processing...";
+    document.getElementById('loading-overlay').classList.remove('hidden');
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').classList.add('hidden');
+}
+
+
+// --- MODIFY processFiles() ---
+async function processFiles() {
+    const patientId = document.getElementById('patient-id').value;
+    const ctFiles = document.getElementById('ct-dir').files;
+    const docFile = document.getElementById('doc-rt').files[0];
+    const aiFile = document.getElementById('ai-rt').files[0];
+
+    if (!patientId || !docFile || !aiFile) {
+        alert("Please fill in the Patient ID and select both RTStruct files.");
+        return;
+    }
+
+    // 1. Show the loading screen
+    showLoading("Parsing DICOM files and auto-mapping structures...");
+
+    // 2. Use setTimeout to give the browser time to render the spinner
+    setTimeout(() => {
+        
+        // MOCK DATA: Simulating extracted names
+        docStructures = ["BrainStem", "Chiasm", "L_Eye", "R_Eye", "OpticNerve_L"];
+        aiStructures = ["BrainStem", "Chiasm", "Eye_L", "Eye_R", "Optic_Nerve_L"];
+        
+        autoMapStructures(docStructures, aiStructures);
+        
+        document.getElementById('mapping-section').classList.remove('hidden');
+        
+        // 3. Hide the loading screen when done
+        hideLoading();
+
+    }, 150); // 150 millisecond delay
+}
+
+
+// --- MODIFY runCalculations() ---
+function runCalculations() {
+    const patientId = document.getElementById('patient-id').value;
+    const tbody = document.getElementById('results-body');
+    
+    // 1. Show the loading screen
+    showLoading("Running heavy volumetric and HD95 calculations...");
+
+    // 2. Wrap the heavy math in setTimeout
+    setTimeout(() => {
+        
+        Object.keys(currentMapping).forEach(docName => {
+            const aiName = currentMapping[docName];
+            
+            let volDoc = (Math.random() * 50 + 5).toFixed(3); 
+            let volAI = (parseFloat(volDoc) * (1 + (Math.random() * 0.1 - 0.05))).toFixed(3);
+            let percentVar = volDoc > 0 ? (((volAI - volDoc) / volDoc) * 100).toFixed(2) : 0;
+            let dice = (Math.random() * 0.1 + 0.85).toFixed(3); 
+            let hd95 = (Math.random() * 2 + 1).toFixed(2);
+            let hdMax = (parseFloat(hd95) + Math.random() * 3).toFixed(2);
+
+            let resultData = {
+                Patient_ID: patientId, Doc_Name: docName, AI_Name: aiName,
+                Dice: dice, HD95: hd95, HDmax: hdMax, Vol_Doc: volDoc, Vol_AI: volAI, Var: percentVar
+            };
+            allPatientsData.push(resultData);
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${patientId}</td><td>${docName}</td><td>${aiName}</td>
+                    <td>${dice}</td><td>${hd95}</td><td>${hdMax}</td>
+                    <td>${volDoc}</td><td>${volAI}</td><td>${percentVar}%</td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('results-section').classList.remove('hidden');
+        
+        // 3. Hide the loading screen when done
+        hideLoading();
+
+    }, 150); // 150 millisecond delay
+}
 // Global State Storage
 let allPatientsData = [];
 let currentMapping = {};
