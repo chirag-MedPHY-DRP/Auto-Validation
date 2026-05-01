@@ -1,3 +1,4 @@
+/* --- Global Color Variables --- */
 :root {
     --primary: #0056b3;
     --bg-color: #f4f7f6;
@@ -6,6 +7,7 @@
     --border: #dddddd;
 }
 
+/* --- Base Body & Typography --- */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
@@ -14,9 +16,17 @@ body {
     padding: 20px;
 }
 
-.container { max-width: 1050px; margin: 0 auto; }
-header { text-align: center; margin-bottom: 30px; }
+.container { 
+    max-width: 1050px; /* Slightly wider to accommodate the new ID Name column */
+    margin: 0 auto; 
+}
 
+header { 
+    text-align: center; 
+    margin-bottom: 30px; 
+}
+
+/* --- Cards & Containers --- */
 .card {
     background: var(--card-bg);
     padding: 25px;
@@ -25,62 +35,167 @@ header { text-align: center; margin-bottom: 30px; }
     margin-bottom: 20px;
 }
 
-.hidden { display: none !important; }
-.form-group { margin-bottom: 15px; }
-label { display: block; font-weight: 600; margin-bottom: 5px; }
-
-input[type="text"], input[type="file"], .select-box {
-    width: 100%; padding: 10px; border: 1px solid var(--border);
-    border-radius: 4px; box-sizing: border-box; font-size: 14px;
+.hidden { 
+    display: none !important; 
 }
 
-input[type="text"]:focus, .select-box:focus {
-    outline: none; border-color: var(--primary);
+/* --- Form Elements --- */
+.form-group { 
+    margin-bottom: 15px; 
 }
 
+label { 
+    display: block; 
+    font-weight: 600; 
+    margin-bottom: 5px; 
+}
+
+input[type="text"], 
+input[type="file"], 
+.select-box {
+    width: 100%; 
+    padding: 10px; 
+    border: 1px solid var(--border);
+    border-radius: 4px; 
+    box-sizing: border-box; 
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus, 
+.select-box:focus {
+    outline: none; 
+    border-color: var(--primary);
+}
+
+/* --- Buttons --- */
 button {
-    background-color: var(--primary); color: white; border: none;
-    padding: 10px 20px; border-radius: 4px; cursor: pointer;
-    font-size: 16px; margin-top: 10px; transition: background-color 0.2s;
+    background-color: var(--primary); 
+    color: white; 
+    border: none;
+    padding: 10px 20px; 
+    border-radius: 4px; 
+    cursor: pointer;
+    font-size: 16px; 
+    margin-top: 10px; 
+    transition: background-color 0.2s;
 }
-button:hover { background-color: #004494; }
 
-button.secondary { background-color: #6c757d; }
-button.secondary:hover { background-color: #5a6268; }
+button:hover { 
+    background-color: #004494; 
+}
 
-.btn-sm { padding: 8px 15px; font-size: 14px; margin-top: 0; }
+button.secondary { 
+    background-color: #6c757d; 
+}
 
-/* --- Mapping Section UI --- */
-.mapping-block { margin-bottom: 25px; }
-.mapping-block h3 { border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #555;}
+button.secondary:hover { 
+    background-color: #5a6268; 
+}
+
+.btn-sm { 
+    padding: 8px 15px; 
+    font-size: 14px; 
+    margin-top: 0; 
+}
+
+/* --- Structure Mapping UI --- */
+.mapping-block { 
+    margin-bottom: 25px; 
+}
+
+.mapping-block h3 { 
+    border-bottom: 1px solid var(--border); 
+    padding-bottom: 10px; 
+    color: #555;
+}
 
 .mapping-row {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    padding: 15px; border-bottom: 1px solid var(--border); background-color: #fcfcfc;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start; /* Aligns items to top for the multi-line input layout */
+    padding: 15px; 
+    border-bottom: 1px solid var(--border); 
+    background-color: #fcfcfc;
 }
 
 .manual-controls {
-    display: flex; gap: 15px; align-items: center; background-color: #f8f9fa;
-    padding: 15px; border-radius: 6px; border: 1px solid var(--border);
+    display: flex; 
+    gap: 15px; 
+    align-items: center; 
+    background-color: #f8f9fa;
+    padding: 15px; 
+    border-radius: 6px; 
+    border: 1px solid var(--border);
 }
-.link-icon { font-size: 24px; color: var(--primary); font-weight: bold; }
 
-/* --- Table UI --- */
-.table-responsive { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-th, td { border: 1px solid var(--border); padding: 12px; text-align: left; }
-th { background-color: #f8f9fa; white-space: nowrap; }
-.actions { margin-top: 20px; display: flex; gap: 10px; }
+.link-icon { 
+    font-size: 24px; 
+    color: var(--primary); 
+    font-weight: bold; 
+}
 
-/* --- Loading Spinner UI --- */
+/* --- Results Table --- */
+.table-responsive { 
+    overflow-x: auto; 
+}
+
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 15px; 
+    font-size: 14px; 
+}
+
+th, td { 
+    border: 1px solid var(--border); 
+    padding: 12px; 
+    text-align: left; 
+}
+
+th { 
+    background-color: #f8f9fa; 
+    white-space: nowrap; /* Prevents headers from wrapping awkwardly */
+}
+
+.actions { 
+    margin-top: 20px; 
+    display: flex; 
+    gap: 10px; 
+}
+
+/* --- Full Screen Loading Overlay --- */
 #loading-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(255, 255, 255, 0.85); display: flex;
-    flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.85); 
+    display: flex;
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 9999;
 }
+
 .spinner {
-    border: 6px solid #f3f3f3; border-top: 6px solid var(--primary);
-    border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 15px;
+    border: 6px solid #f3f3f3; 
+    border-top: 6px solid var(--primary);
+    border-radius: 50%; 
+    width: 60px; 
+    height: 60px; 
+    animation: spin 1s linear infinite; 
+    margin-bottom: 15px;
 }
-#loading-text { font-size: 18px; font-weight: bold; color: var(--primary); }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+#loading-text { 
+    font-size: 18px; 
+    font-weight: bold; 
+    color: var(--primary); 
+}
+
+@keyframes spin { 
+    0% { transform: rotate(0deg); } 
+    100% { transform: rotate(360deg); } 
+}
