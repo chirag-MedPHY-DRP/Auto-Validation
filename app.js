@@ -1,8 +1,8 @@
 // --- GLOBAL VARIABLES ---
 let allPatientsData = [];
 let currentMapping = {};
-let docStructures = [];
-let aiStructures = [];
+let unmappedDoc = [];
+let unmappedAi = [];
 
 // --- HELPER FUNCTIONS ---
 function showLoading(message) {
@@ -14,38 +14,60 @@ function hideLoading() {
     document.getElementById('loading-overlay').classList.add('hidden');
 }
 
+// Built-in Fuzzy Matcher (Levenshtein Distance) - Never fails due to adblockers!
+function getSimilarityScore(s1, s2) {
+    let longer = s1.toLowerCase();
+    let shorter = s2.toLowerCase();
+    if (s1.length < s2.length) { longer = s2.toLowerCase(); shorter = s1.toLowerCase(); }
+    let longerLength = longer.length;
+    if (longerLength === 0) return 1.0;
+    
+    let costs = [];
+    for (let i = 0; i <= longer.length; i++) {
+        let lastValue = i;
+        for (let j = 0; j <= shorter.length; j++) {
+            if (i === 0) costs[j] = j;
+            else if (j > 0) {
+                let newValue = costs[j - 1];
+                if (longer.charAt(i - 1) !== shorter.charAt(j - 1))
+                    newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                costs[j - 1] = lastValue;
+                lastValue = newValue;
+            }
+        }
+        if (i > 0) costs[shorter.length] = lastValue;
+    }
+    return (longerLength - costs[shorter.length]) / parseFloat(longerLength);
+}
+
+
 // --- CORE LOGIC ---
 async function processFiles() {
-    console.log("processFiles function triggered.");
     const patientId = document.getElementById('patient-id').value;
     const docFile = document.getElementById('doc-rt').files[0];
     const aiFile = document.getElementById('ai-rt').files[0];
 
-    // Validation check
     if (!patientId || !docFile || !aiFile) {
         alert("Please fill in the Patient ID and select both RTStruct files.");
         return;
     }
 
-    // Show spinner
     showLoading("Parsing DICOM files and auto-mapping structures...");
 
-    // Pause for 150ms to allow the browser to draw the loading screen
     setTimeout(() => {
         try {
             // MOCK DATA: Simulating structure extraction
-            docStructures = ["BrainStem", "Chiasm", "L_Eye", "R_Eye", "OpticNerve_L"];
-            aiStructures = ["BrainStem", "Chiasm", "Eye_L", "Eye_R", "Optic_Nerve_L"];
+            // We include mismatched names to prove the fuzzy logic works natively
+            let docStructures = ["BrainStem", "Chiasm", "L_Eye", "R_Eye", "OpticNerve_L", "Unknown_Doc_Struct"];
+            let aiStructures = ["BrainStem", "Chiasm", "Eye_L", "Eye_R", "Optic_Nerve_L", "Random_AI_Target"];
             
             autoMapStructures(docStructures, aiStructures);
             
             document.getElementById('mapping-section').classList.remove('hidden');
-            console.log("Mapping complete.");
         } catch (error) {
             console.error("Error during mapping:", error);
             alert("An error occurred during mapping. Check the console for details.");
         } finally {
-            // Always hide spinner when done
             hideLoading();
         }
     }, 150);
@@ -53,53 +75,115 @@ async function processFiles() {
 
 function autoMapStructures(docNames, aiNames) {
     currentMapping = {};
-    let availableAi = [...aiNames];
-    
-    const container = document.getElementById('mapping-container');
-    container.innerHTML = "";
+    unmappedDoc = [];
+    unmappedAi = [...aiNames];
 
     docNames.forEach(docName => {
         let bestMatch = null;
-        
+        let highestScore = 0;
+
         // 1. Exact Match
-        if (availableAi.includes(docName)) {
+        if (unmappedAi.includes(docName)) {
             bestMatch = docName;
+            highestScore = 1;
         } 
-        // 2. Fuzzy Match
-        // CRITICAL FIX: Only run if availableAi actually has items left!
-        else if (availableAi.length > 0) {
-            // CRITICAL FIX: Check if the library loaded correctly from the internet
-            if (typeof stringSimilarity !== 'undefined') {
-                const matches = stringSimilarity.findBestMatch(docName, availableAi);
-                if (matches.bestMatch.rating >= 0.6) {
-                    bestMatch = matches.bestMatch.target;
+        // 2. Custom Built-in Fuzzy Match
+        else {
+            unmappedAi.forEach(aiName => {
+                let score = getSimilarityScore(docName, aiName);
+                if (score > highestScore) {
+                    highestScore = score;
+                    bestMatch = aiName;
                 }
-            } else {
-                console.warn("Fuzzy matching library didn't load. Relying on exact matches only.");
-            }
+            });
         }
 
-        if (bestMatch) {
+        // If score is 50% match or better, pair them
+        if (bestMatch && highestScore >= 0.50) {
             currentMapping[docName] = bestMatch;
-            // Remove the matched item so it can't be used twice
-            availableAi = availableAi.filter(n => n !== bestMatch);
-            
-            // Build UI for Mapping
-            container.innerHTML += `
-                <div class="mapping-row" id="map-${docName}">
-                    <span><strong>Doc:</strong> ${docName} &nbsp;&harr;&nbsp; <strong>AI:</strong> ${bestMatch}</span>
-                    <button class="secondary" onclick="discardMapping('${docName}', '${bestMatch}')">Discard</button>
-                </div>
-            `;
+            unmappedAi = unmappedAi.filter(n => n !== bestMatch);
+        } else {
+            // No good match found, add to unmapped list
+            unmappedDoc.push(docName);
         }
     });
+
+    renderMappingUI();
+}
+
+function renderMappingUI() {
+    const container = document.getElementById('mapping-container');
+    const docSelect = document.getElementById('unmapped-doc');
+    const aiSelect = document.getElementById('unmapped-ai');
+    const manualSection = document.getElementById('manual-mapping-section');
+
+    // 1. Render Currently Paired
+    container.innerHTML = "";
+    Object.keys(currentMapping).forEach(docName => {
+        let aiName = currentMapping[docName];
+        container.innerHTML += `
+            <div class="mapping-row" id="map-${docName}">
+                <span><strong>Doc:</strong> ${docName} &nbsp;&harr;&nbsp; <strong>AI:</strong> ${aiName}</span>
+                <button class="secondary btn-sm" onclick="discardMapping('${docName}', '${aiName}')">Discard</button>
+            </div>
+        `;
+    });
+
+    if (Object.keys(currentMapping).length === 0) {
+        container.innerHTML = "<p><em>No structures are currently paired.</em></p>";
+    }
+
+    // 2. Render Unmapped Dropdowns
+    docSelect.innerHTML = `<option value="">-- Select Doc Structure --</option>` + 
+        unmappedDoc.map(d => `<option value="${d}">${d}</option>`).join('');
+        
+    aiSelect.innerHTML = `<option value="">-- Select AI Structure --</option>` + 
+        unmappedAi.map(a => `<option value="${a}">${a}</option>`).join('');
+
+    // 3. Show/Hide Manual Section
+    if (unmappedDoc.length > 0 && unmappedAi.length > 0) {
+        manualSection.style.display = "block";
+    } else {
+        manualSection.style.display = "none";
+    }
 }
 
 function discardMapping(docName, aiName) {
+    // Remove from paired list
     delete currentMapping[docName];
-    document.getElementById(`map-${docName}`).remove();
+    
+    // Put them back into the unmapped arrays
+    unmappedDoc.push(docName);
+    unmappedAi.push(aiName);
+    
+    // Re-render UI
+    renderMappingUI();
 }
 
+function addManualMapping() {
+    const docSelect = document.getElementById('unmapped-doc');
+    const aiSelect = document.getElementById('unmapped-ai');
+    
+    const docName = docSelect.value;
+    const aiName = aiSelect.value;
+
+    if (!docName || !aiName) {
+        alert("Please select both a Doctor and an AI structure to pair.");
+        return;
+    }
+
+    // Pair them up
+    currentMapping[docName] = aiName;
+    
+    // Remove from unmapped arrays
+    unmappedDoc = unmappedDoc.filter(n => n !== docName);
+    unmappedAi = unmappedAi.filter(n => n !== aiName);
+
+    // Re-render UI
+    renderMappingUI();
+}
+
+// --- CALCULATION AND EXPORT LOGIC ---
 function runCalculations() {
     const patientId = document.getElementById('patient-id').value;
     const tbody = document.getElementById('results-body');
@@ -116,7 +200,6 @@ function runCalculations() {
             Object.keys(currentMapping).forEach(docName => {
                 const aiName = currentMapping[docName];
                 
-                // MOCK MATH: Simulating the heavy Python backend calculations
                 let volDoc = (Math.random() * 50 + 5).toFixed(3); 
                 let volAI = (parseFloat(volDoc) * (1 + (Math.random() * 0.1 - 0.05))).toFixed(3);
                 let percentVar = volDoc > 0 ? (((volAI - volDoc) / volDoc) * 100).toFixed(2) : 0;
@@ -150,10 +233,7 @@ function runCalculations() {
 }
 
 function exportToExcel() {
-    if (allPatientsData.length === 0) {
-        alert("No data to export!");
-        return;
-    }
+    if (allPatientsData.length === 0) { alert("No data to export!"); return; }
     const ws = XLSX.utils.json_to_sheet(allPatientsData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Results");
@@ -162,13 +242,11 @@ function exportToExcel() {
 
 function organizeExcel() {
     const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.xlsx';
+    fileInput.type = 'file'; fileInput.accept = '.xlsx';
     
     fileInput.onchange = (e) => {
         const file = e.target.files[0];
         const reader = new FileReader();
-        
         reader.onload = function(event) {
             const data = new Uint8Array(event.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
