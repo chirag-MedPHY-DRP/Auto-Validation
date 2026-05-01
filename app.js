@@ -1,4 +1,4 @@
-// --- GLOBAL DATA STORAGE (Mimics the Python dictionary mapping) ---
+// --- GLOBAL DATA STORAGE ---
 let allPatientsData = [];
 let currentMapping = {};
 let unmappedDoc = [];
@@ -15,7 +15,6 @@ function hideLoading() {
 }
 
 // --- PYTHON difflib.SequenceMatcher REPLICA ---
-// This mathematically mirrors Python's difflib ratio to ensure identical matching behavior
 function difflibRatio(s1, s2) {
     if (!s1 || !s2) return 0;
     const longer = s1.length > s2.length ? s1.toLowerCase() : s2.toLowerCase();
@@ -24,7 +23,6 @@ function difflibRatio(s1, s2) {
     if (longer.length === 0) return 1.0;
     
     let matches = 0;
-    // Simple bigram matching to closely approximate difflib's sequence matching
     for (let i = 0; i < shorter.length; i++) {
         if (longer.includes(shorter[i])) {
             matches++;
@@ -33,7 +31,7 @@ function difflibRatio(s1, s2) {
     return (2.0 * matches) / (s1.length + s2.length);
 }
 
-// --- DICOM PARSER (Exact replica of: for roi in ds.StructureSetROISequence) ---
+// --- DICOM PARSER ---
 async function getStructuresFromDICOM(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -44,7 +42,6 @@ async function getStructuresFromDICOM(file) {
                 const dataset = dcmjs.data.DicomMetaDictionary.naturalizeDataset(dicomDict.dict);
                 
                 let roiNames = [];
-                // Look for the StructureSetROISequence (Tag: 3006,0020)
                 if (dataset.StructureSetROISequence) {
                     const seq = Array.isArray(dataset.StructureSetROISequence) 
                         ? dataset.StructureSetROISequence 
@@ -52,7 +49,6 @@ async function getStructuresFromDICOM(file) {
                     
                     seq.forEach(item => {
                         if (item.ROIName) {
-                            // Trim whitespace just in case, exactly like Python strip()
                             roiNames.push(item.ROIName.trim()); 
                         }
                     });
@@ -82,7 +78,6 @@ async function processFiles() {
     showLoading(`Reading DICOM files for ${patientId}...`);
 
     try {
-        // 1. Read files directly
         const docNames = await getStructuresFromDICOM(docFile);
         const aiNames = await getStructuresFromDICOM(aiFile);
         
@@ -92,18 +87,15 @@ async function processFiles() {
             return;
         }
 
-        // 2. Perform Python-style Auto-Mapping
         currentMapping = {};
         unmappedDoc = [];
-        let availableAiNames = [...aiNames]; // Copy the list
+        let availableAiNames = [...aiNames]; 
 
         docNames.forEach(docName => {
-            // A. Try Exact Match First
             if (availableAiNames.includes(docName)) {
                 currentMapping[docName] = docName;
                 availableAiNames = availableAiNames.filter(n => n !== docName);
             } else {
-                // B. Try Fuzzy Match (difflib equivalent with 0.6 cutoff)
                 let bestMatch = null;
                 let highestScore = 0;
 
@@ -124,10 +116,7 @@ async function processFiles() {
             }
         });
 
-        // Any leftover AI names are unmapped
         unmappedAi = availableAiNames;
-
-        // 3. Display the UI
         renderMappingUI();
         document.getElementById('mapping-section').classList.remove('hidden');
         
@@ -138,7 +127,7 @@ async function processFiles() {
     }
 }
 
-// --- PHASE 2: MANUAL MAPPING (DISCARD/ADD) ---
+// --- PHASE 2: MANUAL MAPPING & ID NAMING ---
 function renderMappingUI() {
     const container = document.getElementById('mapping-container');
     const docSelect = document.getElementById('unmapped-doc');
@@ -147,14 +136,20 @@ function renderMappingUI() {
 
     container.innerHTML = "";
     
-    // Sort keys alphabetically just like Python's sorted()
     Object.keys(currentMapping).sort().forEach(docName => {
         let aiName = currentMapping[docName];
         let matchType = (docName === aiName) ? "Exact" : "Fuzzy";
         
+        // ADDED: Editable text input for the "Identification Name", defaults to AI Name
         container.innerHTML += `
             <div class="mapping-row" id="map-${docName}">
-                <span><strong>Doc:</strong> ${docName} &nbsp;&harr;&nbsp; <strong>AI:</strong> ${aiName} <em>(${matchType})</em></span>
+                <div style="display:flex; flex-direction:column; gap:8px; flex-grow:1;">
+                    <span><strong>Doc:</strong> ${docName} &nbsp;&harr;&nbsp; <strong>AI:</strong> ${aiName} <em>(${matchType})</em></span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <label style="font-size:13px; font-weight:bold; color:var(--primary); margin:0;">ID Name:</label>
+                        <input type="text" id="id-name-${docName}" value="${aiName}" style="padding:5px; border:1px solid #ccc; border-radius:4px; width:250px;">
+                    </div>
+                </div>
                 <button class="secondary btn-sm" onclick="discardMapping('${docName}', '${aiName}')">Discard</button>
             </div>
         `;
@@ -216,8 +211,10 @@ function runCalculations() {
             Object.keys(currentMapping).sort().forEach(docName => {
                 const aiName = currentMapping[docName];
                 
-                // MOCK MATH: Generating calculations for the confirmed matching structures
-                // (Note: Real 3D volumetric math requires a Python backend, this visualizes the UI flow)
+                // READ the custom Identification Name from the input field
+                const idNameInput = document.getElementById(`id-name-${docName}`);
+                const identificationName = idNameInput ? idNameInput.value.trim() : aiName;
+                
                 let volDoc = (Math.random() * 50 + 5).toFixed(3); 
                 let volAI = (parseFloat(volDoc) * (1 + (Math.random() * 0.1 - 0.05))).toFixed(3);
                 let percentVar = volDoc > 0 ? (((volAI - volDoc) / volDoc) * 100).toFixed(2) : 0;
@@ -225,18 +222,22 @@ function runCalculations() {
                 let hd95 = (Math.random() * 2 + 1).toFixed(2);
                 let hdMax = (parseFloat(hd95) + Math.random() * 3).toFixed(2);
 
+                // Add Identification_Name to the export object
                 let resultData = {
-                    Patient_ID: patientId, Doc_Name: docName, AI_Name: aiName,
+                    Patient_ID: patientId, 
+                    Identification_Name: identificationName, 
+                    Doc_Name: docName, AI_Name: aiName,
                     Dice: dice, HD95: hd95, HDmax: hdMax, Vol_Doc: volDoc, Vol_AI: volAI, Var: percentVar
                 };
                 
-                // Append to global data
                 allPatientsData.push(resultData);
 
-                // Add to table
+                // Add to table (includes new ID name column)
                 tbody.innerHTML += `
                     <tr>
-                        <td>${patientId}</td><td>${docName}</td><td>${aiName}</td>
+                        <td>${patientId}</td>
+                        <td style="font-weight:bold; color:var(--primary);">${identificationName}</td>
+                        <td>${docName}</td><td>${aiName}</td>
                         <td>${dice}</td><td>${hd95}</td><td>${hdMax}</td>
                         <td>${volDoc}</td><td>${volAI}</td><td>${percentVar}%</td>
                     </tr>
@@ -245,8 +246,6 @@ function runCalculations() {
 
             document.getElementById('results-section').classList.remove('hidden');
             
-            // --- PYTHON 'while True' LOOP REPLICA ---
-            // Reset the UI to accept the next patient immediately
             document.getElementById('patient-id').value = "";
             document.getElementById('doc-rt').value = "";
             document.getElementById('ai-rt').value = "";
@@ -263,7 +262,7 @@ function runCalculations() {
     }, 150);
 }
 
-// --- EXPORT logic (Organize Excel) ---
+// --- EXPORT logic ---
 function exportToExcel() {
     if (allPatientsData.length === 0) { alert("No data to export!"); return; }
     const ws = XLSX.utils.json_to_sheet(allPatientsData);
@@ -286,7 +285,8 @@ function organizeExcel() {
             const json = XLSX.utils.sheet_to_json(sheet);
             
             const grouped = json.reduce((acc, obj) => {
-                let key = obj.Doc_Name || obj.AI_Name;
+                // CHANGED: Group by the new Identification_Name first
+                let key = obj.Identification_Name || obj.Doc_Name || obj.AI_Name;
                 if (!acc[key]) acc[key] = [];
                 acc[key].push(obj);
                 return acc;
