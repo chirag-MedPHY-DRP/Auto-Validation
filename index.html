@@ -6,12 +6,12 @@
     <title>AI vs. Doctor Contouring Comparison Tool</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- External Libraries (SheetJS for Excel export, dcmjs for DICOM) -->
+    <!-- External Libraries required by app.js -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/dcmjs"></script>
 </head>
 <body>
-    <!-- Loading Overlay -->
+    <!-- Full Screen Loading Overlay -->
     <div id="loading-overlay" class="hidden">
         <div class="spinner"></div>
         <p id="loading-text">Processing data, please wait...</p>
@@ -23,6 +23,7 @@
             <p>Select your DICOM files to begin mapping and analysis.</p>
         </header>
 
+        <!-- PHASE 1: Upload -->
         <section id="upload-section" class="card">
             <h2>1. Upload Patient Data</h2>
             <div class="form-group">
@@ -30,39 +31,40 @@
                 <input type="text" id="patient-id" placeholder="e.g., PAT_001">
             </div>
             <div class="form-group">
-                <label>CT Images Folder (DICOM directory):</label>
+                <label>CT Images Folder (Optional - for future 3D scaling):</label>
                 <input type="file" id="ct-dir" webkitdirectory directory multiple>
             </div>
             <div class="form-group">
-                <label>DOCTOR RTStruct File:</label>
+                <label>DOCTOR RTStruct File (.dcm):</label>
                 <input type="file" id="doc-rt" accept=".dcm">
             </div>
             <div class="form-group">
-                <label>AI RTStruct File:</label>
+                <label>AI RTStruct File (.dcm):</label>
                 <input type="file" id="ai-rt" accept=".dcm">
             </div>
             <button id="btn-load" onclick="processFiles()">Load & Auto-Map Structures</button>
         </section>
 
+        <!-- PHASE 2: Mapping -->
         <section id="mapping-section" class="card hidden">
             <h2>2. Structure Mapping</h2>
             
             <div class="mapping-block">
                 <h3>Currently Paired Structures</h3>
                 <div id="mapping-container">
-                    <!-- Paired items will appear here -->
+                    <!-- Paired items will be injected here by app.js -->
                 </div>
             </div>
 
-            <div class="mapping-block" id="manual-mapping-section">
+            <div class="mapping-block" id="manual-mapping-section" style="display: none;">
                 <h3>Manual Pairing (Unmatched Structures)</h3>
                 <div class="manual-controls">
                     <select id="unmapped-doc" class="select-box">
-                        <!-- Unmapped Doc structures -->
+                        <!-- Unmapped Doc structures injected here -->
                     </select>
                     <span class="link-icon">&harr;</span>
                     <select id="unmapped-ai" class="select-box">
-                        <!-- Unmapped AI structures -->
+                        <!-- Unmapped AI structures injected here -->
                     </select>
                     <button class="btn-sm" onclick="addManualMapping()">Add Pair</button>
                 </div>
@@ -71,8 +73,9 @@
             <button id="btn-calculate" onclick="runCalculations()">Run Calculations</button>
         </section>
 
+        <!-- PHASE 3: Results -->
         <section id="results-section" class="card hidden">
-            <h2>3. Results</h2>
+            <h2>3. Results Overview</h2>
             <div class="table-responsive">
                 <table id="results-table">
                     <thead>
@@ -88,16 +91,19 @@
                             <th>Var %</th>
                         </tr>
                     </thead>
-                    <tbody id="results-body"></tbody>
+                    <tbody id="results-body">
+                        <!-- Calculation rows injected here by app.js -->
+                    </tbody>
                 </table>
             </div>
             <div class="actions">
-                <button onclick="exportToExcel()">Export to Excel</button>
-                <button class="secondary" onclick="organizeExcel()">Organize Existing Excel</button>
+                <button onclick="exportToExcel()">Export All to Excel</button>
+                <button class="secondary" onclick="organizeExcel()">Organize Existing Excel File</button>
             </div>
         </section>
     </div>
 
+    <!-- Links to your JavaScript logic -->
     <script src="app.js"></script>
 </body>
 </html>
